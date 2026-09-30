@@ -1,0 +1,123 @@
+# ============================================================
+# PANDAS DATA CLEANING - 5 PRACTICAL OPERATIONS
+# ============================================================
+
+import pandas as pd
+
+# Load dataset
+df = pd.read_csv("data.csv")
+
+print("Original Shape:", df.shape)
+print("\nOriginal Data:")
+print(df.head())
+
+
+# ============================================================
+# 1. HANDLE MISSING VALUES
+# ============================================================
+
+# Fill missing numeric values with the column median
+# Median is less affected by extreme values than the mean
+numeric_cols = df.select_dtypes(include="number").columns
+
+for col in numeric_cols:
+    df[col] = df[col].fillna(df[col].median())
+
+# Fill missing text values with "Unknown"
+text_cols = df.select_dtypes(include="object").columns
+
+for col in text_cols:
+    df[col] = df[col].fillna("Unknown")
+
+print("\n1. Missing values handled")
+
+
+# ============================================================
+# 2. REMOVE DUPLICATE ROWS
+# ============================================================
+
+# Remove completely duplicated rows
+# keep="first" keeps the first occurrence
+df = df.drop_duplicates()
+
+print("2. Duplicate rows removed")
+
+
+# ============================================================
+# 3. CLEAN TEXT COLUMNS
+# ============================================================
+
+# Remove unnecessary spaces from text columns
+for col in text_cols:
+    df[col] = df[col].astype(str).str.strip()
+
+# Convert text to a consistent lowercase format
+# Example: " Kerala " -> "kerala"
+for col in text_cols:
+    df[col] = df[col].str.lower()
+
+print("3. Text columns cleaned")
+
+
+# ============================================================
+# 4. STANDARDIZE INCONSISTENT VALUES
+# ============================================================
+
+# Example: standardize common variations of "male" and "female"
+if "gender" in df.columns:
+    df["gender"] = df["gender"].replace({
+        "m": "male",
+        "man": "male",
+        "f": "female",
+        "woman": "female"
+    })
+
+print("4. Inconsistent values standardized")
+
+
+# ============================================================
+# 5. CONVERT DATA TYPES
+# ============================================================
+
+# Convert date column to proper datetime format
+if "date" in df.columns:
+    df["date"] = pd.to_datetime(
+        df["date"],
+        errors="coerce"
+    )
+
+# Convert numeric columns to numbers
+# Invalid values become NaN instead of causing an error
+if "salary" in df.columns:
+    df["salary"] = pd.to_numeric(
+        df["salary"],
+        errors="coerce"
+    )
+
+print("5. Data types converted")
+
+
+# ============================================================
+# FINAL CHECK
+# ============================================================
+
+print("\n" + "=" * 50)
+print("CLEANING COMPLETED")
+print("=" * 50)
+
+print("\nFinal Shape:", df.shape)
+
+print("\nRemaining Missing Values:")
+print(df.isnull().sum())
+
+print("\nData Types:")
+print(df.dtypes)
+
+print("\nCleaned Data:")
+print(df.head())
+
+
+# Save cleaned dataset
+df.to_csv("cleaned_data.csv", index=False)
+
+print("\nCleaned dataset saved as: cleaned_data.csv")
